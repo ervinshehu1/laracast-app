@@ -1,121 +1,27 @@
-import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import { StatusBar } from 'expo-status-bar';
+import React from 'react';
 import {
-  Alert,
-  Button,
-  Pressable,
   StyleSheet,
   Text,
-  TextInput,
-  Touchable,
-  TouchableOpacity,
   View,
-} from "react-native";
+} from 'react-native';
 
-import Feather from "@expo/vector-icons/Feather";
-import { FlatList } from "react-native";
 
 export default function App() {
-  const [text, setText] = useState("");
-  const [results, setResults] = useState([]);
-
-  useEffect(() => {
-    fetch('https://www.reddit.com/r/aww.json')
-    .then(response => response.json())
-    .then(resulstFromServer =>{
-      setResults(resulstFromServer.data.children)
-    })
-  }, []
-)
-
-  const DATA = [
-    {
-      id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
-      title: "First Item",
-    },
-    {
-      id: "3ac68afc-c605-48d3-a4f8-fbd91aa97f63",
-      title: "Second Item",
-    },
-    {
-      id: "58694a0f-3da1-471f-bd96-145571e29d72",
-      title: "Third Item",
-    },
-  ];
-
-  function onPress() {
-    Alert.alert("Touchable Opacity Pressed");
-  }
-
-  const renderItem = ({ item }) => (
-    <View style={{marginTop: 10}}>
-      <Text>{item.data.title}</Text>
-    </View>
-  );
-
   return (
     <View style={styles.container}>
-      <Text style={{ color: "red" }}>
+      <Text style={{ color: 'red' }}>
         One more edit Open edit this up App.js to start working on your app!
       </Text>
-      <Button
-        title="Press me"
-        color="red"
-        onPress={() => Alert.alert("Simple Button pressed")}
-      />
-      <TouchableOpacity style={styles.button} onPress={onPress}>
-        <Text>
-          <Feather name="settings" size={24} color="black" />
-        </Text>
-        <Text>Press Here</Text>
-      </TouchableOpacity>
-      <View style={{ marginTop: 60 }}>
-        <Pressable
-          style={styles.button}
-          onPressIn={() => console.log("pressing in")}
-          onPressOut={() => console.log("pressing out")}
-          onLongPress={() => console.log("long press")}
-          hitSlop={20}
-        >
-          <Text>Pressable Here</Text>
-        </Pressable>
       </View>
-      <View>
-        <TextInput style={styles.input} onChangeText={setText} value={text} />
-        <Text>{text}</Text>
-      </View>
-      <View>
-        <FlatList
-        style={{marginHorizontal: 20}}
-          data={results}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.data.id}
-        />
-      </View>
-    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    marginTop: 60,
-    //justifyContent: 'center',
-  },
-
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#DDDDDD",
-    padding: 10,
-  },
-  input: {
-    height: 40,
-    margin: 12,
-    width: 300,
-    borderWidth: 1,
-    padding: 10,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
