@@ -1,6 +1,8 @@
 import "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import {Ionicons} from '@expo/vector-icons'
 import {
   NavigationContainer,  
   NavigationIndependentTree,
@@ -22,22 +24,46 @@ const Tab = createBottomTabNavigator();
 
 const HomeStackNavigator = () => {
   return (
-    <Stack.Navigator>
-      {/* <Stack.Screen name="Home1" component={HomeScreen}/> */}
-      <Stack.Screen name="Tab" component={TabNavigator}/>
-      <Stack.Screen name="NewTweet" component={NewTweet}/>
-      <Stack.Screen name="Tweet Screen" component={TweetScreen}/>
-      <Stack.Screen name="Profile Screen" component={ProfileScreen}/>
+    <Stack.Navigator screenOptions={{ headerShown: true, }}>
+      <Stack.Screen name="Tab" component={TabNavigator} options={{ headerShown: false}}/>
+      <Stack.Screen name="NewTweet" component={NewTweet} options={{title: ''}}/>
+      <Stack.Screen name="Tweet Screen" component={TweetScreen} options={{title: ''}}/>
+      <Stack.Screen name="Profile Screen" component={ProfileScreen} options={{title: ''}}/>
     </Stack.Navigator>
   )
 }
 
 const TabNavigator = () => {
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Home1" component={HomeScreen}/>
-      <Tab.Screen name="Search" component={SearchScreen}/>
-      <Tab.Screen name="Notifications" component={NotificationsScreen}/>
+    <Tab.Navigator screenOptions={{
+      headerShown: false,
+      tabBarShowLabel: false,
+    }}>
+      <Tab.Screen 
+      name="Home1" 
+      component={HomeScreen}
+      options={{
+        tabBarIcon: ({color, size}) => (
+          <Ionicons name="home" size={size} color={color}/>
+        ),
+      }}
+      />
+      <Tab.Screen 
+      name="Search" 
+      component={SearchScreen}
+      options={{
+        tabBarIcon: ({color, size}) => (
+          <Ionicons name="Search" size={size} color={color}/>
+        ),
+      }}/>
+      <Tab.Screen 
+      name="Notifications" 
+      component={NotificationsScreen}
+      options={{
+        tabBarIcon: ({color, size}) => (
+          <Ionicons name="Notifications" size={size} color={color}/>
+        ),
+      }}/>
     </Tab.Navigator>
   )
 }
@@ -46,7 +72,9 @@ export default function App() {
   return (
     <NavigationIndependentTree>
       <NavigationContainer>
-        <Drawer.Navigator initialRouteName="Home">
+        <Drawer.Navigator initialRouteName="Home" screenOptions={{
+          headerShown: true,
+        }}>
           <Drawer.Screen name="Home" component={HomeStackNavigator}/>
           <Drawer.Screen name="Settings" component={SettingsScreen}/>
         </Drawer.Navigator>
