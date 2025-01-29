@@ -1,12 +1,16 @@
 import React from "react";
-import { Text, StyleSheet, View, TouchableOpacity, Image } from "react-native";
+import { Text, StyleSheet, View, TouchableOpacity, Image, Platform } from "react-native";
 import Entypo from "@expo/vector-icons/Entypo";
+import EvilIcons from "@expo/vector-icons/EvilIcons";
 
-export default function TweetScreen() {
+export default function TweetScreen({navigation}) {
+  function gotoProfile() {
+    navigation.navigate("Profile Screen");
+  }
   return (
     <View style={styles.container}>
       <View style={styles.ProfileContainer}>
-        <TouchableOpacity style={styles.flexRow}>
+        <TouchableOpacity style={styles.flexRow} onPress={() => gotoProfile()}>
           <Image
             style={styles.avatar}
             source={{
@@ -45,6 +49,37 @@ export default function TweetScreen() {
           <Text style={styles.tweetEngagementNumber}>2,934</Text>
           <Text style={styles.tweetEngagementLabel}>Likes</Text>
         </View>
+    </View>
+
+    <View style={[styles.tweetEngagement, styles.spaceAround]}>
+    <TouchableOpacity>
+            <EvilIcons
+              name="comment"
+              size={32}
+              color="gray"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <EvilIcons
+              name="retweet"
+              size={32}
+              color="gray"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <EvilIcons
+              name="heart"
+              size={32}
+              color="gray"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <EvilIcons
+              name={Platform.OS == "ios" ? "share-apple" : "share-google"}
+              size={32}
+              color="gray"
+            />
+          </TouchableOpacity>
     </View>
     </View>
 
@@ -104,5 +139,8 @@ const styles = StyleSheet.create({
   },
   ml4: {
     marginLeft: 16,
+  },
+  spaceAround: {
+    justifyContent: 'space-around',
   },
 });
