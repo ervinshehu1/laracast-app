@@ -26,9 +26,9 @@ const HomeStackNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: true, }}>
       <Stack.Screen name="Tab" component={TabNavigator} options={{ headerShown: false}}/>
-      <Stack.Screen name="NewTweet" component={NewTweet} options={{title: ''}}/>
-      <Stack.Screen name="Tweet Screen" component={TweetScreen} options={{title: ''}}/>
-      <Stack.Screen name="Profile Screen" component={ProfileScreen} options={{title: ''}}/>
+      <Stack.Screen name="NewTweet" component={NewTweet} options={{title:''}}/>
+      <Stack.Screen name="Tweet Screen" component={TweetScreen} options={{title:''}}/>
+      <Stack.Screen name="Profile Screen" component={ProfileScreen} options={{title:''}}/>
     </Stack.Navigator>
   )
 }
@@ -53,7 +53,7 @@ const TabNavigator = () => {
       component={SearchScreen}
       options={{
         tabBarIcon: ({color, size}) => (
-          <Ionicons name="Search" size={size} color={color}/>
+          <Ionicons name="search" size={size} color={color}/>
         ),
       }}/>
       <Tab.Screen 
@@ -61,7 +61,7 @@ const TabNavigator = () => {
       component={NotificationsScreen}
       options={{
         tabBarIcon: ({color, size}) => (
-          <Ionicons name="Notifications" size={size} color={color}/>
+          <Ionicons name="notifications" size={size} color={color}/>
         ),
       }}/>
     </Tab.Navigator>

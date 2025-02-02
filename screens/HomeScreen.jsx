@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 
@@ -15,11 +16,13 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import axios from "axios";
 import { formatDistanceToNowStrict } from "date-fns";
 import locale from "date-fns/locale/en-US";
-import formatDistance from '../helpers/formatDistanceCustom';
-
+import formatDistance from "../helpers/formatDistanceCustom";
 
 export default function HomeScreen({ navigation }) {
   const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
 
   useEffect(() => {
     getAllTweets();
@@ -27,13 +30,22 @@ export default function HomeScreen({ navigation }) {
 
   function getAllTweets() {
     axios
-      .get("http://redmnzzwzw.sharedwithexpose.com/api/tweets")
+      .get("http://6ftigrodoe.sharedwithexpose.com/api/tweets")
       .then((response) => {
         setData(response.data);
+        setIsLoading(false);
+        setIsRefreshing(false);
       })
       .catch((error) => {
         console.log(error);
+        setIsLoading(false);
+        setIsRefreshing(false);
       });
+  }
+
+  function handleRefresh() {
+    setIsRefreshing(true);
+    getAllTweets();
   }
 
   function gotoProfile() {
@@ -130,14 +142,21 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        ItemSeparatorComponent={() => (
-          <View style={styles.tweetSeperator}></View>
-        )}
-      />
+      {isLoading ? (
+        <ActivityIndicator style={{ marginTop: 8 }} size="large" color="gray" />
+      ) : (
+        <FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          ItemSeparatorComponent={() => (
+            <View style={styles.tweetSeperator}></View>
+          )}
+
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+        />
+      )}
       <TouchableOpacity
         style={styles.floatingButton}
         onPress={() => gotoNewTweet()}
