@@ -1,21 +1,54 @@
 import React, { useState } from "react";
-import { Text, StyleSheet, View, TouchableOpacity, Image,} from "react-native";
+import { Text, StyleSheet, View, TouchableOpacity, Image, ActivityIndicator, Alert } from "react-native";
 import { TextInput } from "react-native";
 
-export default function NewTweet({navigation}) {
-const [tweet, setTweet] = useState('');
+import axiosConfig from "../helpers/axiosConfig";
 
-function sendTweet(){
-  navigation.navigate('Tab')
-}
+export default function NewTweet({ navigation }) {
+  const [tweet, setTweet] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  function sendTweet() {
+    if (tweet.length == 0) {
+      Alert.alert('Please enter a tweet.')
+      return;
+    }
+
+    setIsLoading(true);
+    axiosConfig
+      .post(`/tweets`, {
+        body: tweet,
+      })
+      .then((response) => {
+        navigation.navigate("Home1", {
+          newTweetAdded: response.data,
+        });
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        setIsLoading(false);
+      });
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.tweetButtonContainer}>
-        <Text style={tweet.length > 250 ? styles.textRed : styles.textGray}>Character left: {280 - tweet.length}</Text>
-        <TouchableOpacity style={styles.tweetButton} onPress={() => sendTweet()}>
+        <Text style={tweet.length > 250 ? styles.textRed : styles.textGray}>
+          Character left: {280 - tweet.length}
+        </Text>
+        <View style={{flexDirection:'row', alignItems: 'center'}}>
+          {isLoading && (
+          <ActivityIndicator size="small" color="gray" style={{marginRight: 8 }} />
+          )}
+        <TouchableOpacity
+          style={styles.tweetButton}
+          onPress={() => sendTweet()}
+          disabled={isLoading}
+        >
           <Text style={styles.tweetButtonText}>Tweet</Text>
         </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.tweetBoxContainer}>
@@ -26,7 +59,7 @@ function sendTweet(){
           }}
         />
         <TextInput
-          style={styles.input} 
+          style={styles.input}
           onChangeText={setTweet}
           value={tweet}
           placeholder="What's happening?"
@@ -74,11 +107,11 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  tweetBoxContainer:{
-    flexDirection:'row',
+  tweetBoxContainer: {
+    flexDirection: "row",
     paddingTop: 10,
   },
-  avatar:{
+  avatar: {
     width: 42,
     height: 42,
     marginRight: 8,
@@ -90,5 +123,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 28,
     padding: 10,
-  }
+  },
 });
