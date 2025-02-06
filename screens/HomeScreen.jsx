@@ -13,7 +13,7 @@ import { FlatList } from "react-native-gesture-handler";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 
-import axios from "axios";
+import axiosConfig from "../helpers/axiosConfig";
 import { formatDistanceToNowStrict } from "date-fns";
 import locale from "date-fns/locale/en-US";
 import formatDistance from "../helpers/formatDistanceCustom";
@@ -25,16 +25,15 @@ export default function HomeScreen({ navigation }) {
   const [page, setPage] = useState(1);
   const [isAtEndOfScrolling, setIsAtEndOfScrolling] = useState(false);
 
-
   useEffect(() => {
     getAllTweets();
   }, [page]);
 
   function getAllTweets() {
-    axios
-      .get(`http://3xx1gl6ohu.sharedwithexpose.com/api/tweets?page=${page}`)
+    axiosConfig
+      .get(`/tweets?page=${page}`)
       .then((response) => {
-        if(page == 1) {
+        if (page == 1) {
           setData(response.data.data);
         } else {
           setData([...data, ...response.data.data]);
@@ -43,7 +42,6 @@ export default function HomeScreen({ navigation }) {
         if (!response.data.next_page_url) {
           setIsAtEndOfScrolling(true);
         }
-
 
         setIsLoading(false);
         setIsRefreshing(false);
@@ -70,8 +68,10 @@ export default function HomeScreen({ navigation }) {
     navigation.navigate("Profile Screen");
   }
 
-  function gotoSingleTweet() {
-    navigation.navigate("Tweet Screen");
+  function gotoSingleTweet(tweetId) {
+    navigation.navigate("Tweet Screen", {
+      tweetId: tweetId,
+    });
   }
 
   function gotoNewTweet() {
@@ -91,7 +91,7 @@ export default function HomeScreen({ navigation }) {
       <View style={{ flex: 1 }}>
         <TouchableOpacity
           style={styles.flexRow}
-          onPress={() => gotoSingleTweet()}
+          onPress={() => gotoSingleTweet(tweet.id)}
         >
           <Text numberOfLines={1} style={styles.tweetName}>
             {tweet.user.name}
@@ -112,7 +112,7 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.tweetContentContainer}
-          onPress={() => gotoSingleTweet()}
+          onPress={() => gotoSingleTweet(tweet.id)}
         >
           <Text style={styles.tweetContent}>{tweet.body}</Text>
         </TouchableOpacity>
@@ -174,7 +174,11 @@ export default function HomeScreen({ navigation }) {
           onRefresh={handleRefresh}
           onEndReached={handleEnd}
           onEndReachedThreshold={0}
-          ListFooterComponent={() => !isAtEndOfScrolling && (<ActivityIndicator size="large" color="gray"/>)}
+          ListFooterComponent={() =>
+            !isAtEndOfScrolling && (
+              <ActivityIndicator size="large" color="gray" />
+            )
+          }
         />
       )}
       <TouchableOpacity
