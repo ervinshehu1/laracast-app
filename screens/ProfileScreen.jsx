@@ -12,14 +12,21 @@ import {
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import axiosConfig from "../helpers/axiosConfig";
 import { format } from "date-fns";
+import RenderItem from "@/components/Renderitem";
 
 export default function ProfileScreen({ route, navigation }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState([]);
+  const [IsLoadingTweets, setIsLoadingTweets] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [isAtEndOfScrolling, setIsAtEndOfScrolling] = useState(false);
 
   useEffect(() => {
     getUserProfile();
-  }, []);
+    getUserTweets();
+  }, [page]);
 
   function getUserProfile() {
     axiosConfig
@@ -35,55 +42,43 @@ export default function ProfileScreen({ route, navigation }) {
       });
   }
 
-  const DATA = [
-    {
-      id: "1",
-      title: "First Item",
-    },
-    {
-      id: "2",
-      title: "Second Item",
-    },
-    {
-      id: "3",
-      title: "Third Item",
-    },
-    {
-      id: "4",
-      title: "Third Item",
-    },
-    {
-      id: "5",
-      title: "Third Item",
-    },
-    {
-      id: "6",
-      title: "Third Item",
-    },
-    {
-      id: "7",
-      title: "Third Item",
-    },
-    {
-      id: "8",
-      title: "Third Item",
-    },
-    {
-      id: "9",
-      title: "Third Item",
-    },
-    {
-      id: "10",
-      title: "Third Item",
-    },
-  ];
+  function getUserTweets() {
+    axiosConfig
+      .get(`/users/${route.params.userId}/tweets?page=${page}`)
+      .then((response) => {
+        console.log(response.data.data);
+        if (page == 1) {
+          setData(response.data.data);
+        } else {
+          setData([...data, ...response.data.data]);
+        }
 
-  const renderItem = ({ item }) => (
-    <View style={{ marginVertical: 20 }}>
-      <Text>{item.title}</Text>
-    </View>
-  );
+        if (!response.data.next_page_url) {
+          setIsAtEndOfScrolling(true);
+        }
 
+        setIsLoadingTweets(false);
+        setIsRefreshing(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        setIsLoadingTweets(false);
+        setIsRefreshing(false);
+      });
+  }
+
+  function handleRefresh() {
+    setPage(1);
+    setIsAtEndOfScrolling(false);
+    setIsRefreshing(true);
+    getUserTweets();
+  }
+
+  function handleEnd() {
+    setPage(page + 1);
+  }
+
+ 
   const ProfileHeader = () => (
     <View style={styles.container}>
       {isLoading ? (
@@ -114,9 +109,7 @@ export default function ProfileScreen({ route, navigation }) {
           </View>
 
           <View style={styles.profileContainer}>
-            <Text style={styles.profileContainerText}>
-              {user.profile}
-            </Text>
+            <Text style={styles.profileContainerText}>{user.profile}</Text>
           </View>
 
           <View style={styles.locationContainer}>
@@ -134,7 +127,9 @@ export default function ProfileScreen({ route, navigation }) {
             </TouchableOpacity>
             <View style={[styles.linkItem, styles.ml4]}>
               <EvilIcons name="calendar" size={24} color="gray" />
-              <Text style={styles.textGray}>Joined {format(new Date(user.created_at), 'MMM yyyy')}</Text>
+              <Text style={styles.textGray}>
+                Joined {format(new Date(user.created_at), "MMM yyyy")}
+              </Text>
             </View>
           </View>
 
@@ -156,14 +151,28 @@ export default function ProfileScreen({ route, navigation }) {
   );
 
   return (
-    <FlatList
-      style={styles.container}
-      data={DATA}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      ItemSeparatorComponent={() => <View style={styles.separator}></View>}
-      ListHeaderComponent={ProfileHeader}
-    />
+    <View style={styles.container}>
+      {isLoading ? (
+        <ActivityIndicator style={{ marginTop: 8 }} size="large" color="gray" />
+      ) : (
+        <FlatList
+          data={data}
+          renderItem={(props) => <RenderItem {...props} />}
+          keyExtractor={(item) => item.id}
+          ItemSeparatorComponent={() => <View style={styles.separator}></View>}
+          ListHeaderComponent={ProfileHeader}
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          onEndReached={handleEnd}
+          onEndReachedThreshold={0}
+          ListFooterComponent={() =>
+            !isAtEndOfScrolling && (
+              <ActivityIndicator size="large" color="gray" />
+            )
+          }
+        />
+      )}
+    </View>
   );
 }
 
