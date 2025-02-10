@@ -10,16 +10,17 @@ import {
 import { createStackNavigator } from "@react-navigation/stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import HomeScreen from "../../screens/HomeScreen";
-import NewTweet from "../../screens/NewTweet";
-import TweetScreen from "../../screens/TweetScreen";
-import ProfileScreen from "../../screens/ProfileScreen";
-import SettingsScreen from "../../screens/SettingsScreen";
-import NotificationsScreen from "../../screens/NotificationsScreen";
-import SearchScreen from "../../screens/SearchScreen";
-import { AuthContext, AuthProvider } from "../../context/AuthProvider";
-import LoginScreen from "../../screens/Auth/LoginScreen";
-import RegisterScreen from "../../screens/Auth/RegisterScreen";
+import HomeScreen from "./screens/HomeScreen";
+import NewTweet from "./screens/NewTweet";
+import TweetScreen from "./screens/TweetScreen";
+import ProfileScreen from "./screens/ProfileScreen";
+import SettingsScreen from "./screens/SettingsScreen";
+import NotificationsScreen from "./screens/NotificationsScreen";
+import SearchScreen from "./screens/SearchScreen";
+import { AuthContext, AuthProvider } from "./context/AuthProvider";
+import LoginScreen from "./screens/Auth/LoginScreen";
+import RegisterScreen from "./screens/Auth/RegisterScreen";
+import * as SecureStore from "expo-secure-store";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -117,9 +118,17 @@ export default function App() {
   const { user, setUser } = useContext(AuthContext);
 
   useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+    SecureStore.getItemAsync('user')
+        .then(userString => {
+            if (userString) {
+                setUser(JSON.parse(userString));
+            }
+            setIsLoading(false);
+        })
+        .catch(err => {
+            console.log(err);
+            setIsLoading(false);
+        });
   }, []);
 
   if (isLoading) {
@@ -148,9 +157,9 @@ export default function App() {
         </NavigationIndependentTree>
       ) : (
         <NavigationIndependentTree>
-        <NavigationContainer>
-            <AuthStackNavigator/>
-        </NavigationContainer>
+          <NavigationContainer>
+            <AuthStackNavigator />
+          </NavigationContainer>
         </NavigationIndependentTree>
       )}
     </>
