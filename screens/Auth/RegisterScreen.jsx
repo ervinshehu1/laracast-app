@@ -23,6 +23,11 @@ export default function RegisterScreen({ navigation }) {
   const [error, setError] = useState(null);
 
   function register(email, username, password, confirmPassword) {
+    if(name.length < 1){
+        Alert.alert('Please enter a name.');
+        return;
+    }
+
     setIsLoading(true);
     axiosConfig
       .post('/register', {
