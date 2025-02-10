@@ -1,4 +1,4 @@
-import { Button, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Button, KeyboardAvoidingView, ScrollView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import React, { useState } from 'react';
 import {
   View,
@@ -10,7 +10,7 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'; // Import this
+
 import axiosConfig from '../../helpers/axiosConfig';
 
 export default function RegisterScreen({ navigation }) {
@@ -23,11 +23,11 @@ export default function RegisterScreen({ navigation }) {
   const [error, setError] = useState(null);
 
   function register(email, username, password, confirmPassword) {
-    if(name.length < 1){
+    if (name.length < 1) {
         Alert.alert('Please enter a name.');
         return;
-    }
-
+      }
+      
     setIsLoading(true);
     axiosConfig
       .post('/register', {
@@ -57,13 +57,7 @@ export default function RegisterScreen({ navigation }) {
       style={{ flex: 1 }}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAwareScrollView
-          contentContainerStyle={styles.container}
-          enableOnAndroid={true}
-          extraHeight={120} 
-          extraScrollHeight={20} 
-          keyboardShouldPersistTaps="handled"
-        >
+        <ScrollView contentContainerStyle={styles.container}>
           <View style={{ marginTop: 130, width: 260 }}>
             <View style={{ alignItems: 'center' }}>
               <Image
@@ -143,7 +137,7 @@ export default function RegisterScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAwareScrollView>
+        </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
@@ -195,3 +189,4 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
 });
+

@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
             .catch((error) => {
               console.log(error.response);
               const key = Object.keys(error.response.data.errors)[0];
-        setError(error.response.data.errors[key][0]);
+              setError(error.response.data.errors[key][0]);
               setIsLoading(false);
             });
         },
@@ -50,10 +50,12 @@ export const AuthProvider = ({ children }) => {
           console.log(user.token);
 
           setIsLoading(true);
-          axiosConfig.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
+          axiosConfig.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${user.token}`;
           axiosConfig
             .post("/logout")
-            .then(response => {
+            .then((response) => {
               setUser(null);
               SecureStore.deleteItemAsync("user");
               setError(null);
@@ -62,7 +64,7 @@ export const AuthProvider = ({ children }) => {
             .catch((error) => {
               console.log(error);
               setUser(null);
-              SecureStore.deleteItemAsync('user');
+              SecureStore.deleteItemAsync("user");
               setError(error.response.data.message);
               setIsLoading(false);
             });
