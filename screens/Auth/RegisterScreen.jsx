@@ -50,7 +50,7 @@ export default function RegisterScreen({ navigation }) {
         setIsLoading(false);
       });
   }
-
+  
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

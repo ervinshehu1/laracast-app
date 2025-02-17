@@ -7,32 +7,29 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
-
 import EvilIcons from "@expo/vector-icons/EvilIcons";
-
-
 import { formatDistanceToNowStrict } from "date-fns";
 import locale from "date-fns/locale/en-US";
 import formatDistance from "../helpers/formatDistanceCustom";
 import { useNavigation } from "@react-navigation/core";
 
-export default function RenderItem({item: tweet}) {
-    const navigation = useNavigation();
-    function gotoProfile(userId) {
-        navigation.navigate("Profile Screen", {
-          userId: userId,
-        });
-      }
-    
-      function gotoSingleTweet(tweetId) {
-        navigation.navigate("Tweet Screen", {
-          tweetId: tweetId,
-        });
-      }
+export default function RenderItem({ item: tweet, toggleLike }) {
+  const navigation = useNavigation();
 
-    return (
-        <View style={styles.tweetContainer}>
+  function gotoProfile(userId) {
+    navigation.navigate("Profile Screen", {
+      userId: userId,
+    });
+  }
+
+  function gotoSingleTweet(tweetId) {
+    navigation.navigate("Tweet Screen", {
+      tweetId: tweetId,
+    });
+  }
+
+  return (
+    <View style={styles.tweetContainer}>
       <TouchableOpacity onPress={() => gotoProfile(tweet.user.id)}>
         <Image
           style={styles.avatar}
@@ -54,7 +51,6 @@ export default function RenderItem({item: tweet}) {
           </Text>
           <Text>&middot;</Text>
           <Text numberOfLines={1} style={styles.tweetHandle}>
-            {/* {formatDistanceToNowStrict(new Date(tweet.created_at))} */}
             {formatDistanceToNowStrict(new Date(tweet.created_at), {
               locale: {
                 ...locale,
@@ -89,14 +85,18 @@ export default function RenderItem({item: tweet}) {
             />
             <Text style={styles.textGray}>32</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.flexRow, styles.ml4]}>
+          {/* Like Button */}
+          <TouchableOpacity
+            style={[styles.flexRow, styles.ml4]}
+            onPress={() => toggleLike(tweet.id)}
+          >
             <EvilIcons
               name="heart"
               size={22}
-              color="gray"
+              color={tweet.isLiked ? "red" : "gray"}
               style={{ marginRight: 2 }}
             />
-            <Text style={styles.textGray}>4,456</Text>
+            <Text style={styles.textGray}>{tweet.likeCount}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.flexRow, styles.ml4]}>
             <EvilIcons
@@ -109,49 +109,47 @@ export default function RenderItem({item: tweet}) {
         </View>
       </View>
     </View>
-    )
+  );
 }
 
 const styles = StyleSheet.create({
-    flexRow: {
-      flexDirection: "row",
-    },
-    tweetContainer: {
-      flexDirection: "row",
-      paddingHorizontal: 12,
-      paddingVertical: 12,
-    },
-    
-    avatar: {
-      width: 42,
-      height: 42,
-      marginRight: 8,
-      borderRadius: 21,
-    },
-    tweetName: {
-      fontWeight: "bold",
-      color: "#222222",
-    },
-    tweetHandle: {
-      marginHorizontal: 8,
-      color: "gray",
-    },
-    tweetContentContainer: {
-      marginTop: 4,
-    },
-    tweetContent: {
-      lineHeight: 20,
-    },
-    textGray: {
-      color: "gray",
-    },
-    tweetEngagement: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: 12,
-    },
-   
-    ml4: {
-      marginLeft: 16,
-    },
-  });
+  flexRow: {
+    flexDirection: "row",
+  },
+  tweetContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    marginRight: 8,
+    borderRadius: 21,
+  },
+  tweetName: {
+    fontWeight: "bold",
+    color: "#222222",
+  },
+  tweetHandle: {
+    marginHorizontal: 8,
+    color: "gray",
+  },
+  tweetContentContainer: {
+    marginTop: 4,
+  },
+  tweetContent: {
+    lineHeight: 20,
+  },
+  textGray: {
+    color: "gray",
+  },
+  tweetEngagement: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+  },
+  ml4: {
+    marginLeft: 16,
+  },
+});

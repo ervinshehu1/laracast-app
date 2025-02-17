@@ -7,6 +7,7 @@ import {
   Image,
   Platform,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import Entypo from "@expo/vector-icons/Entypo";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
@@ -17,6 +18,8 @@ import { format } from "date-fns";
 export default function TweetScreen({ route, navigation }) {
   const [tweet, setTweet] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLiked, setIsLiked] = useState(false); 
+  const [likeCount, setLikeCount] = useState(0);
 
   useEffect(() => {
     getTweet();
@@ -27,6 +30,7 @@ export default function TweetScreen({ route, navigation }) {
       .get(`/tweets/${route.params.tweetId}`)
       .then((response) => {
         setTweet(response.data);
+        setLikeCount(tweetData.likes_count || 0);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -38,9 +42,21 @@ export default function TweetScreen({ route, navigation }) {
   function gotoProfile(userId) {
     navigation.navigate("Profile Screen", {
       userId: userId,
-    
-});
+    });
   }
+
+  function toggleLike() {
+    setLikeCount((prevCount) => {
+      const newCount = isLiked ? prevCount - 1 : prevCount + 1;
+      return newCount;
+    });
+  
+
+    setIsLiked((prevState) => !prevState);
+  }
+  
+  
+
   return (
     <View style={styles.container}>
       {isLoading ? (
@@ -94,28 +110,28 @@ export default function TweetScreen({ route, navigation }) {
               <Text style={styles.tweetEngagementLabel}>Quote Tweets</Text>
             </View>
             <View style={[styles.flexRow, styles.ml4]}>
-              <Text style={styles.tweetEngagementNumber}>2,934</Text>
+            <Text style={styles.tweetEngagementNumber}>{likeCount}</Text>
               <Text style={styles.tweetEngagementLabel}>Likes</Text>
             </View>
           </View>
 
           <View style={[styles.tweetEngagement, styles.spaceAround]}>
-            <TouchableOpacity>
+            <Pressable>
               <EvilIcons name="comment" size={32} color="gray" />
-            </TouchableOpacity>
-            <TouchableOpacity>
+            </Pressable>
+            <Pressable>
               <EvilIcons name="retweet" size={32} color="gray" />
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <EvilIcons name="heart" size={32} color="gray" />
-            </TouchableOpacity>
-            <TouchableOpacity>
+            </Pressable>
+            <Pressable onPress={toggleLike}>
+              <EvilIcons name="heart" size={32} color={isLiked ? "red" : "gray"} />
+            </Pressable>
+            <Pressable>
               <EvilIcons
                 name={Platform.OS == "ios" ? "share-apple" : "share-google"}
                 size={32}
                 color="gray"
               />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </>
       )}

@@ -1,26 +1,19 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Text,
   View,
   StyleSheet,
-  Image,
-  TouchableOpacity,
-  Platform,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 
-import EvilIcons from "@expo/vector-icons/EvilIcons";
 import AntDesign from "@expo/vector-icons/AntDesign";
-
 import axiosConfig from "../helpers/axiosConfig";
-import { formatDistanceToNowStrict } from "date-fns";
-import locale from "date-fns/locale/en-US";
-import formatDistance from "../helpers/formatDistanceCustom";
 
-import RenderItem from '../components/Renderitem';
+import RenderItem from "../components/Renderitem";
 
-export default function HomeScreen({route, navigation }) {
+export default function HomeScreen({ route, navigation }) {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -34,10 +27,10 @@ export default function HomeScreen({route, navigation }) {
 
   useEffect(() => {
     if (route.params?.newTweetAdded) {
-    getAllTweetsRefresh();
-    flatListRef.current.scrollToOffset({
-      offset: 0,
-    })
+      getAllTweetsRefresh();
+      flatListRef.current.scrollToOffset({
+        offset: 0,
+      });
     }
   }, [route.params?.newTweetAdded]);
 
@@ -45,11 +38,17 @@ export default function HomeScreen({route, navigation }) {
     setPage(1);
     setIsLoading(false);
     setIsRefreshing(false);
-    
+
     axiosConfig
       .get(`/tweets`)
       .then((response) => {
-        setData(response.data.data);  
+        setData(
+          response.data.data.map((tweet) => ({
+            ...tweet,
+            isLiked: false, 
+            likeCount: tweet.likeCount || 0, 
+          }))
+        );
         setIsLoading(false);
         setIsRefreshing(false);
       })
@@ -64,10 +63,16 @@ export default function HomeScreen({route, navigation }) {
     axiosConfig
       .get(`/tweets?page=${page}`)
       .then((response) => {
+        const newTweets = response.data.data.map((tweet) => ({
+          ...tweet,
+          isLiked: tweet.isLiked || false,
+          likeCount: tweet.likeCount || 0,
+        }));
+
         if (page == 1) {
-          setData(response.data.data);
+          setData(newTweets);
         } else {
-          setData([...data, ...response.data.data]);
+          setData([...data, ...newTweets]);
         }
 
         if (!response.data.next_page_url) {
@@ -95,12 +100,24 @@ export default function HomeScreen({route, navigation }) {
     setPage(page + 1);
   }
 
-  
-
   function gotoNewTweet() {
     navigation.navigate("NewTweet");
   }
 
+
+  function toggleLike(tweetId) {
+    setData((prevData) =>
+      prevData.map((tweet) =>
+        tweet.id === tweetId
+          ? {
+              ...tweet,
+              isLiked: !tweet.isLiked,
+              likeCount: tweet.isLiked ? tweet.likeCount - 1 : tweet.likeCount + 1,
+            }
+          : tweet
+      )
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -110,26 +127,19 @@ export default function HomeScreen({route, navigation }) {
         <FlatList
           ref={flatListRef}
           data={data}
-          renderItem={props => <RenderItem {...props} />}
+          renderItem={({ item }) => <RenderItem item={item} toggleLike={toggleLike} />}
           keyExtractor={(item) => item.id.toString()}
-          ItemSeparatorComponent={() => (
-            <View style={styles.tweetSeperator}></View>
-          )}
+          ItemSeparatorComponent={() => <View style={styles.tweetSeperator}></View>}
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
           onEndReached={handleEnd}
           onEndReachedThreshold={0}
           ListFooterComponent={() =>
-            !isAtEndOfScrolling && (
-              <ActivityIndicator size="large" color="gray" />
-            )
+            !isAtEndOfScrolling && <ActivityIndicator size="large" color="gray" />
           }
         />
       )}
-      <TouchableOpacity
-        style={styles.floatingButton}
-        onPress={() => gotoNewTweet()}
-      >
+      <TouchableOpacity style={styles.floatingButton} onPress={gotoNewTweet}>
         <AntDesign name="plus" size={26} color="white" />
       </TouchableOpacity>
     </View>
@@ -138,9 +148,6 @@ export default function HomeScreen({route, navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "white" },
-  flexRow: {
-    flexDirection: "row",
-  },
   tweetSeperator: {
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",

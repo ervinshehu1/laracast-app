@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Text, StyleSheet, View, TouchableOpacity, Image, ActivityIndicator, Alert } from "react-native";
 import { TextInput } from "react-native";
 
 import axiosConfig from "../helpers/axiosConfig";
+import { AuthContext } from "@/context/AuthProvider";
 
 export default function NewTweet({ navigation }) {
   const [tweet, setTweet] = useState("");
@@ -15,6 +16,8 @@ export default function NewTweet({ navigation }) {
     }
 
     setIsLoading(true);
+    
+
     axiosConfig
       .post(`/tweets`, {
         body: tweet,
