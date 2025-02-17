@@ -78,7 +78,22 @@ export default function ProfileScreen({ route, navigation }) {
     setPage(page + 1);
   }
 
- 
+  function toggleLike(tweetId) {
+    setData((prevData) =>
+      prevData.map((tweet) => {
+        if (tweet.id === tweetId) {
+          const currentLikes = tweet.likeCount || 0;
+          return {
+            ...tweet,
+            isLiked: !tweet.isLiked,
+            likeCount: tweet.isLiked ? currentLikes - 1 : currentLikes + 1,
+          };
+        }
+        return tweet;
+      })
+    );
+  }
+
   const ProfileHeader = () => (
     <View style={styles.container}>
       {isLoading ? (
@@ -157,8 +172,10 @@ export default function ProfileScreen({ route, navigation }) {
       ) : (
         <FlatList
           data={data}
-          renderItem={(props) => <RenderItem {...props} />}
-          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <RenderItem item={item} toggleLike={toggleLike} />
+          )}
+          keyExtractor={(item) => item.id.toString()}
           ItemSeparatorComponent={() => <View style={styles.separator}></View>}
           ListHeaderComponent={ProfileHeader}
           refreshing={isRefreshing}
