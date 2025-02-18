@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import {
   Text,
   View,
@@ -12,6 +12,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import axiosConfig from "../helpers/axiosConfig";
 
 import RenderItem from "../components/Renderitem";
+import { AuthContext } from '@/context/AuthProvider';
 
 export default function HomeScreen({ route, navigation }) {
   const [data, setData] = useState([]);
@@ -20,6 +21,7 @@ export default function HomeScreen({ route, navigation }) {
   const [page, setPage] = useState(1);
   const [isAtEndOfScrolling, setIsAtEndOfScrolling] = useState(false);
   const flatListRef = useRef();
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     getAllTweets();
@@ -45,8 +47,8 @@ export default function HomeScreen({ route, navigation }) {
         setData(
           response.data.data.map((tweet) => ({
             ...tweet,
-            isLiked: false, 
-            likeCount: tweet.likeCount || 0, 
+            isLiked: tweet.isLikedByUser, 
+            likeCount: tweet.likes.length || 0, 
           }))
         );
         setIsLoading(false);
@@ -59,14 +61,18 @@ export default function HomeScreen({ route, navigation }) {
       });
   }
 
+  function isTweetLikedByUser(tweetId, tweetLikes) {
+    return tweetLikes.some(tweetLike => tweetLike.user_id === user.id && tweetLike.tweet_id === tweetId)
+  }
+
   function getAllTweets() {
     axiosConfig
       .get(`/tweets?page=${page}`)
       .then((response) => {
         const newTweets = response.data.data.map((tweet) => ({
           ...tweet,
-          isLiked: tweet.isLiked || false,
-          likeCount: tweet.likeCount || 0,
+          isLiked: isTweetLikedByUser(tweet.id, tweet.likes) || false,
+          likeCount: tweet.likes.length || 0,
         }));
 
         if (page == 1) {
@@ -104,20 +110,56 @@ export default function HomeScreen({ route, navigation }) {
     navigation.navigate("NewTweet");
   }
 
-
   function toggleLike(tweetId) {
-    setData((prevData) =>
-      prevData.map((tweet) =>
-        tweet.id === tweetId
-          ? {
-              ...tweet,
-              isLiked: !tweet.isLiked,
-              likeCount: tweet.isLiked ? tweet.likeCount - 1 : tweet.likeCount + 1,
-            }
-          : tweet
-      )
-    );
+    setData((prevData) => prevData.map((tweet) => {
+      if (tweet.id === tweetId) {
+        
+        if (tweet.isLiked) {
+          disLikeTweet(tweetId);  
+        } else {
+          likeTweet(tweetId)
+        }
+  
+        
+        return {
+          ...tweet,
+          isLiked: !tweet.isLiked,
+          likeCount: tweet.isLiked ? tweet.likeCount - 1 : tweet.likeCount + 1,
+        };
+      }
+      return tweet;
+    }));
+    
   }
+  function likeTweet(tweetId){
+    axiosConfig.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${user.token}`;
+    axiosConfig
+      .post(`/like/${user.id}/${tweetId}`)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  function disLikeTweet(tweetId){
+    axiosConfig.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${user.token}`;
+    axiosConfig
+      .post(`/dislike/${user.id}/${tweetId}`)
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+ 
 
   return (
     <View style={styles.container}>

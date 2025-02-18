@@ -8,6 +8,7 @@ import { AuthContext } from "@/context/AuthProvider";
 export default function NewTweet({ navigation }) {
   const [tweet, setTweet] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useContext(AuthContext);
 
   function sendTweet() {
     if (tweet.length == 0) {
@@ -16,14 +17,14 @@ export default function NewTweet({ navigation }) {
     }
 
     setIsLoading(true);
-    
 
     axiosConfig
       .post(`/tweets`, {
+        user_id: user.id,
         body: tweet,
       })
       .then((response) => {
-        navigation.navigate("Home1", {
+        navigation.navigate("Tab", {
           newTweetAdded: response.data,
         });
         setIsLoading(false);

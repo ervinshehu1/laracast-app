@@ -29,8 +29,9 @@ export default function TweetScreen({ route, navigation }) {
     axiosConfig
       .get(`/tweets/${route.params.tweetId}`)
       .then((response) => {
+        console.log(response.data);
         setTweet(response.data);
-        setLikeCount(tweetData.likes_count || 0);
+        setLikeCount(tweetData.likes || 0);
         setIsLoading(false);
       })
       .catch((error) => {
