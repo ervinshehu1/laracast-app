@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Text,
   StyleSheet,
@@ -14,11 +14,13 @@ import EvilIcons from "@expo/vector-icons/EvilIcons";
 
 import axiosConfig from "../helpers/axiosConfig";
 import { format } from "date-fns";
+import { AuthContext } from "@/context/AuthProvider";
 
 export default function TweetScreen({ route, navigation }) {
+  const { user } = useContext(AuthContext);
   const [tweet, setTweet] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLiked, setIsLiked] = useState(false); 
+  const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
 
   useEffect(() => {
@@ -29,9 +31,10 @@ export default function TweetScreen({ route, navigation }) {
     axiosConfig
       .get(`/tweets/${route.params.tweetId}`)
       .then((response) => {
-        console.log(response.data);
-        setTweet(response.data);
-        setLikeCount(tweetData.likes || 0);
+        const tweetData = response.data;
+        setTweet(tweetData);
+        setLikeCount(tweetData.likes.length || 0);
+        setIsLiked(tweetData.isLikedByUser || false);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -41,22 +44,36 @@ export default function TweetScreen({ route, navigation }) {
   }
 
   function gotoProfile(userId) {
-    navigation.navigate("Profile Screen", {
-      userId: userId,
-    });
+    navigation.navigate("Profile Screen", { userId });
   }
 
   function toggleLike() {
-    setLikeCount((prevCount) => {
-      const newCount = isLiked ? prevCount - 1 : prevCount + 1;
-      return newCount;
-    });
-  
+    if (isLiked) {
+      disLikeTweet(tweet.id);
+    } else {
+      likeTweet(tweet.id);
+    }
 
-    setIsLiked((prevState) => !prevState);
+    
+    setIsLiked((prev) => !prev);
+    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
+  }
+
+  function likeTweet(tweetId) {
+    axiosConfig.defaults.headers.common["Authorization"] = `Bearer ${user.token}`;
+    axiosConfig
+      .post(`/like/${user.id}/${tweetId}`)
+      .then((response) => console.log("Liked tweet", response.data))
+      .catch((error) => console.log("Error liking tweet", error));
   }
   
-  
+  function disLikeTweet(tweetId) {
+    axiosConfig.defaults.headers.common["Authorization"] = `Bearer ${user.token}`;
+    axiosConfig
+      .post(`/dislike/${user.id}/${tweetId}`)
+      .then((response) => console.log("Unliked tweet", response.data))
+      .catch((error) => console.log("Error unliking tweet", error));
+  }
 
   return (
     <View style={styles.container}>
@@ -69,12 +86,7 @@ export default function TweetScreen({ route, navigation }) {
               style={styles.flexRow}
               onPress={() => gotoProfile(tweet.user.id)}
             >
-              <Image
-                style={styles.avatar}
-                source={{
-                  uri: tweet.user.avatar,
-                }}
-              />
+              <Image style={styles.avatar} source={{ uri: tweet.user.avatar }} />
               <View>
                 <Text style={styles.tweetName}>{tweet.user.name}</Text>
                 <Text style={styles.tweetHandle}>@{tweet.user.username}</Text>
@@ -101,6 +113,7 @@ export default function TweetScreen({ route, navigation }) {
               </Text>
             </View>
           </View>
+
           <View style={styles.tweetEngagement}>
             <View style={styles.flexRow}>
               <Text style={styles.tweetEngagementNumber}>628</Text>
@@ -111,7 +124,7 @@ export default function TweetScreen({ route, navigation }) {
               <Text style={styles.tweetEngagementLabel}>Quote Tweets</Text>
             </View>
             <View style={[styles.flexRow, styles.ml4]}>
-            <Text style={styles.tweetEngagementNumber}>{likeCount}</Text>
+              <Text style={styles.tweetEngagementNumber}>{likeCount}</Text>
               <Text style={styles.tweetEngagementLabel}>Likes</Text>
             </View>
           </View>
@@ -128,7 +141,7 @@ export default function TweetScreen({ route, navigation }) {
             </Pressable>
             <Pressable>
               <EvilIcons
-                name={Platform.OS == "ios" ? "share-apple" : "share-google"}
+                name={Platform.OS === "ios" ? "share-apple" : "share-google"}
                 size={32}
                 color="gray"
               />
@@ -148,33 +161,22 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 10,
   },
-  flexRow: {
-    flexDirection: "row",
-  },
+  flexRow: { flexDirection: "row" },
   avatar: {
     width: 50,
     height: 50,
     marginRight: 8,
     borderRadius: 25,
   },
-  tweetName: {
-    fontWeight: "bold",
-    color: "#222222",
-  },
-  tweetHandle: {
-    color: "gray",
-    marginTop: 4,
-  },
+  tweetName: { fontWeight: "bold", color: "#222222" },
+  tweetHandle: { color: "gray", marginTop: 4 },
   tweetContentContainer: {
     paddingHorizontal: 10,
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
   },
-  tweetContent: {
-    fontSize: 20,
-    lineHeight: 30,
-  },
+  tweetContent: { fontSize: 20, lineHeight: 30 },
   tweetEngagement: {
     flexDirection: "row",
     alignItems: "center",
@@ -183,28 +185,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
   },
-  tweetEngagementNumber: {
-    fontWeight: "bold",
-  },
-  tweetEngagementLabel: {
-    color: "gray",
-    marginLeft: 6,
-  },
-  tweetTimestampContainer: {
-    flexDirection: "row",
-    marginTop: 12,
-  },
-  tweetTimestampText: {
-    color: "gray",
-    marginRight: 6,
-  },
-  linkColor: {
-    color: "#1d9bf1",
-  },
-  ml4: {
-    marginLeft: 16,
-  },
-  spaceAround: {
-    justifyContent: "space-around",
-  },
+  tweetEngagementNumber: { fontWeight: "bold" },
+  tweetEngagementLabel: { color: "gray", marginLeft: 6 },
+  tweetTimestampContainer: { flexDirection: "row", marginTop: 12 },
+  tweetTimestampText: { color: "gray", marginRight: 6 },
+  linkColor: { color: "#1d9bf1" },
+  ml4: { marginLeft: 16 },
+  spaceAround: { justifyContent: "space-around" },
 });

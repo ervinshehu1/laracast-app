@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Text,
   StyleSheet,
@@ -13,8 +13,10 @@ import EvilIcons from "@expo/vector-icons/EvilIcons";
 import axiosConfig from "../helpers/axiosConfig";
 import { format } from "date-fns";
 import RenderItem from "@/components/Renderitem";
+import { AuthContext } from "@/context/AuthProvider";
 
 export default function ProfileScreen({ route, navigation }) {
+  const { user: authUser } = useContext(AuthContext);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState([]);
@@ -78,20 +80,40 @@ export default function ProfileScreen({ route, navigation }) {
     setPage(page + 1);
   }
 
-  function toggleLike(tweetId) {
-    setData((prevData) =>
-      prevData.map((tweet) => {
-        if (tweet.id === tweetId) {
-          const currentLikes = tweet.likeCount || 0;
-          return {
-            ...tweet,
-            isLiked: !tweet.isLiked,
-            likeCount: tweet.isLiked ? currentLikes - 1 : currentLikes + 1,
-          };
-        }
-        return tweet;
+  function toggleLike(tweetId, isCurrentlyLiked) {
+    const updatedData = data.map((tweet) => {
+      if (tweet.id === tweetId) {
+        const currentLikes = tweet.likeCount || 0;
+        return {
+          ...tweet,
+          isLiked: !tweet.isLiked,
+          likeCount: tweet.isLiked ? currentLikes - 1 : currentLikes + 1,
+        };
+      }
+      return tweet;
+    });
+
+    setData(updatedData);
+
+    const userId = authUser.id;
+    const url = isCurrentlyLiked
+      ? `/dislike/${userId}/${tweetId}`
+      : `/like/${userId}/${tweetId}`;
+
+    axiosConfig.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${authUser.token}`;
+
+    axiosConfig
+      .post(url)
+      .then(() => {
+        console.log(isCurrentlyLiked ? "Tweet unliked" : "Tweet liked");
       })
-    );
+      .catch((error) => {
+        console.error("Error updating like status:", error);
+
+        setData(data);
+      });
   }
 
   const ProfileHeader = () => (
@@ -173,7 +195,10 @@ export default function ProfileScreen({ route, navigation }) {
         <FlatList
           data={data}
           renderItem={({ item }) => (
-            <RenderItem item={item} toggleLike={toggleLike} />
+            <RenderItem
+              item={item}
+              toggleLike={() => toggleLike(item.id, item.isLiked)}
+            />
           )}
           keyExtractor={(item) => item.id.toString()}
           ItemSeparatorComponent={() => <View style={styles.separator}></View>}
